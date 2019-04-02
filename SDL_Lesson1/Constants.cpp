@@ -35,16 +35,16 @@ namespace Constants {
     static const char result[] = "SDL Lesson 1 - Hello World!";
     return result;
   }
-  int WindowX(void) {
+  int WindowPositionX(void) {
     return SDL_WINDOWPOS_CENTERED;
   }
-  int WindowY(void) {
+  int WindowPositionY(void) {
     return SDL_WINDOWPOS_CENTERED;
   }
-  int WindowW(void) {
+  int WindowWidth(void) {
     return 640;
   }
-  int WindowH(void) {
+  int WindowHeight(void) {
     return 480;
   }
   int DefaultRendererWindow(void) {

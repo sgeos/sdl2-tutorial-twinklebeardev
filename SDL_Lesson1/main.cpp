@@ -5,9 +5,6 @@
 #include "Constants.h"
 #include "Utility.h"
 
-/*
- * Lesson 0: Test to make sure SDL is setup properly
- */
 int main(int argc, char** argv) {
   if (0 != SDL_Init(SDL_INIT_VIDEO)) {
     std::cout << "Error: SDL_Init " << SDL_GetError() << std::endl;
@@ -15,10 +12,10 @@ int main(int argc, char** argv) {
   }
   SDL_Window *window = SDL_CreateWindow(
     Constants::WindowTitle(),
-    Constants::WindowX(),
-    Constants::WindowY(),
-    Constants::WindowW(),
-    Constants::WindowH(),
+    Constants::WindowPositionX(),
+    Constants::WindowPositionY(),
+    Constants::WindowWidth(),
+    Constants::WindowHeight(),
     SDL_WINDOW_SHOWN
   );
   if (nullptr == window) {
@@ -37,7 +34,7 @@ int main(int argc, char** argv) {
     SDL_Quit();
     return EXIT_FAILURE;
   }
-  std::string imagePath = Constants::ResourcePath("Lesson1") + "hello.bmp";
+  const std::string imagePath = Constants::ResourcePath(Constants::ApplicationName()) + "hello.bmp";
   SDL_Surface *bitmap = SDL_LoadBMP(imagePath.c_str());
   if (nullptr == bitmap) {
     std::cout << "Error: SDL_LoadBMP " << SDL_GetError() << std::endl;
