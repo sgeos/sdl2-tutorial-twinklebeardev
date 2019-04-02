@@ -1,27 +1,19 @@
+#include <cstdlib>
 #include <iostream>
 #include <SDL2/SDL.h>
 
 #include "Constants.h"
+#include "Utility.h"
 
 /*
  * Lesson 0: Test to make sure SDL is setup properly
  */
 int main(int argc, char** argv) {
-  std::string imagePath = Constants::ResourcePath("Lesson1") + "hello.bmp";
-  SDL_Window *window = nullptr;
-  SDL_Renderer *renderer = nullptr;
-  SDL_Surface *bitmap = nullptr;
-  SDL_Texture *texture = nullptr;
-  bool error = false;
-  bool done = false;
-  int frame = 0;
-
-  error = SDL_Init(SDL_INIT_VIDEO);
-  if (error) {
-    std::cout << "SDL_Init ";
-    goto error_init;
+  if (0 != SDL_Init(SDL_INIT_VIDEO)) {
+    std::cout << "Error: SDL_Init " << SDL_GetError() << std::endl;
+    return EXIT_FAILURE;
   }
-  window = SDL_CreateWindow(
+  SDL_Window *window = SDL_CreateWindow(
     Constants::WindowTitle(),
     Constants::WindowX(),
     Constants::WindowY(),
@@ -29,40 +21,50 @@ int main(int argc, char** argv) {
     Constants::WindowH(),
     SDL_WINDOW_SHOWN
   );
-  error = nullptr == window;
-  if (error) {
-    std::cout << "SDL_CreateWindow ";
-    goto error_window;
+  if (nullptr == window) {
+    std::cout << "Error: SDL_CreateWindow " << SDL_GetError() << std::endl;
+    SDL_Quit();
+    return EXIT_FAILURE;
   }
-  renderer = SDL_CreateRenderer(
+  SDL_Renderer *renderer = SDL_CreateRenderer(
     window,
     Constants::DefaultRendererWindow(),
     SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
   );
-  error = nullptr == renderer;
-  if (error) {
-    std::cout << "SDL_CreateRenderer ";
-    goto error_renderer;
+  if (nullptr == renderer) {
+    std::cout << "Error: SDL_CreateRenderer " << SDL_GetError() << std::endl;
+    Utility::cleanup(window);
+    SDL_Quit();
+    return EXIT_FAILURE;
   }
-  bitmap = SDL_LoadBMP(imagePath.c_str());
-  error = nullptr == bitmap;
-  if (error) {
-    std::cout << "SDL_LoadBMP ";
-    goto error_texture;
+  std::string imagePath = Constants::ResourcePath("Lesson1") + "hello.bmp";
+  SDL_Surface *bitmap = SDL_LoadBMP(imagePath.c_str());
+  if (nullptr == bitmap) {
+    std::cout << "Error: SDL_LoadBMP " << SDL_GetError() << std::endl;
+    Utility::cleanup(renderer, window);
+    SDL_Quit();
+    return EXIT_FAILURE;
   }
-  texture = SDL_CreateTextureFromSurface(renderer, bitmap);
-  SDL_FreeSurface(bitmap);
-  error = nullptr == texture;
-  if (error) {
-    std::cout << "SDL_CreateTextureFromSurface ";
-    goto error_texture;
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, bitmap);
+  Utility::cleanup(bitmap);
+  if (nullptr == texture) {
+    std::cout << "Error: SDL_CreateTextureFromSurface " << SDL_GetError() << std::endl;
+    Utility::cleanup(renderer, window);
+    SDL_Quit();
+    return EXIT_FAILURE;
   }
+  bool done = false;
+  int frame = 0;
   do {
     SDL_Event event;
     SDL_PollEvent(&event);
-    done = done || SDL_QUIT == event.type;
-    done = done || SDL_KEYDOWN == event.type;
-    done = done || SDL_MOUSEBUTTONDOWN == event.type;
+    switch (event.type) {
+      case SDL_QUIT:
+      case SDL_KEYDOWN:
+      case SDL_MOUSEBUTTONDOWN:
+        done = true;
+        break;
+    }
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, texture, nullptr, nullptr);
     SDL_RenderPresent(renderer);
@@ -72,17 +74,8 @@ int main(int argc, char** argv) {
     frame++;
     SDL_Delay(Constants::FrameWait());
   } while (!done);
-  SDL_DestroyTexture(texture);
-  error_texture:
-    SDL_DestroyRenderer(renderer);
-  error_renderer:
-    SDL_DestroyWindow(window);
-  error_window:
-    SDL_Quit();
-  error_init:
-    if (error) {
-      std::cout << "Error: " << SDL_GetError() << std::endl;
-    }
-  return error;
+  Utility::cleanup(texture, renderer, window);
+  SDL_Quit();
+  return EXIT_SUCCESS;
 }
 
