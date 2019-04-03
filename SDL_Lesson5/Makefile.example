@@ -1,0 +1,22 @@
+CXX = clang++
+SDL_HEADER = /opt/local/include
+SDL_LIB = /opt/local/lib
+SDL = -lSDL2 -lSDL2_image -lSDL2_ttf -L$(SDL_LIB)
+# If your compiler is a bit older you may need to change -std=c++11 to -std=c++0x
+CXXFLAGS = -Wall -c -std=c++14 -I$(SDL_HEADER)
+LDFLAGS = $(SDL)
+EXE = ../bin/SDL_Lesson5
+
+.PHONY: all
+all: $(EXE)
+
+$(EXE): main.o Constants.o
+	$(CXX) $(LDFLAGS) $^ -o $@
+
+.o: .cpp
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+.PHONY: clean
+clean:
+	rm -rf *.o $(EXE)
+
